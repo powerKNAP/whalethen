@@ -8,10 +8,9 @@ import { Link } from 'react-router-dom';
 import Search from './Search';
 import Timeline from './Timeline';
 import TimelineInputBox from './TimelineInputBox';
-import TimelineLookup from './TimelineLookup';
+import TimelineLookup from './TimelineLookUp';
 import StartDateBox from './StartDateBox';
 import EndDateBox from './EndDateBox';
-import CreateEventBox from './CreateEventBox';
 import MapView from './MapView';
 
 
@@ -77,16 +76,10 @@ class App extends React.Component {
     });
   }
 
-  onToggleView() {
-    if (this.state.view === 'default') {
-      this.setState({
-        view: 'mapview',
-      });
-    } else if (this.state.view === 'mapview') {
-      this.setState({
-        view: 'default',
-      });
-    }
+  onToggleView(view) {
+    this.setState({
+      view,
+    });
   }
 
   onEnter(event) {
@@ -122,7 +115,6 @@ class App extends React.Component {
           timelineData: data,
           numberOfDays: data.length,
           timelineId: data[0].timelineId,
-          timelineName: data[0].timelineName,
         });
       })
       .catch(err => console.error('Error getting trips ->', err));
@@ -181,7 +173,7 @@ class App extends React.Component {
   }
 
   renderView() {
-    if (this.state.view === 'default') {
+    if (this.state.view === 'default' || this.state.view === 'calendar') {
       return (
         <Timeline
           timelineData={this.state.timelineData}
@@ -192,22 +184,19 @@ class App extends React.Component {
           handleNewAddress={this.handleNewAddress}
           createEvent={this.createEvent}
           getTrip={this.getTrip}
-        />);
-    } else if (this.state.view === 'mapview') {
-      return (
-        <MapView
-          timelineId={this.state.timelineId}
+          startDate={this.state.startDate}
+          view={this.state.view}
         />);
     }
+    return (
+      <MapView
+        timelineId={this.state.timelineId}
+      />);
   }
 
   render() {
-    let buttonName;
-    if (this.state.view === 'default') {
-      buttonName = 'Map View';
-    } else {
-      buttonName = 'Day View';
-    }
+    const timelineView = this.renderView();
+
     return (
       <div className="App">
         {this.state.isLoggedIn ? (
@@ -235,9 +224,11 @@ class App extends React.Component {
             startDate={this.state.startDate}
           />
           <button className="scheduleSubmit" onClick={() => this.onSubmit()}>New Schedule</button>
-          <button className="scheduleSubmit" onClick={() => this.onToggleView()}>{buttonName}</button>
+          {this.state.timelineId && <button className="scheduleSubmit" onClick={() => this.onToggleView('default')}>Day to Day</button>}
+          {this.state.timelineId && <button className="scheduleSubmit" onClick={() => this.onToggleView('mapview')}>Map Trip</button>}
+          {this.state.timelineId && <button className="scheduleSubmit" onClick={() => this.onToggleView('calendar')}>Calendar</button>}
         </div>
-        <div>{this.renderView()}</div>
+        {timelineView}
         <div>
           <TimelineLookup
             handleId={this.handleId}
